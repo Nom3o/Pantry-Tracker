@@ -6,7 +6,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CameraIcon from '@mui/icons-material/Camera';
 import { useThemeContext } from './ThemeContext';
 
-const drawerWidth = 240;
+const drawerWidth = 100;
 
 function DashboardLayout({ children }) {
   const { toggleTheme } = useThemeContext();
@@ -62,7 +62,7 @@ function DashboardLayout({ children }) {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            Dashboard
+            B3la Inventory 
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Button color="inherit" onClick={toggleTheme}>
