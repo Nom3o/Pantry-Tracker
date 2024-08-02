@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { AppBar, Box, CssBaseline, Drawer, IconButton, Toolbar, Typography, Button } from '@mui/material';
+import { AppBar, Box, CssBaseline, Drawer, IconButton, Toolbar, Typography, Button, Paper } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CameraIcon from '@mui/icons-material/Camera';
 import { useThemeContext } from './ThemeContext';
@@ -11,6 +11,7 @@ const drawerWidth = 240;
 function DashboardLayout({ children }) {
   const { toggleTheme } = useThemeContext();
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
 
   const handleToggleCamera = () => {
@@ -28,6 +29,20 @@ function DashboardLayout({ children }) {
       videoRef.current.srcObject = null;
     }
     setIsCameraOn(!isCameraOn);
+  };
+
+  const handleCapture = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = 'capture.png';
+    link.click();
   };
 
   return (
@@ -76,9 +91,22 @@ function DashboardLayout({ children }) {
         sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
       >
         <Toolbar />
-        <Box sx={{ display: isCameraOn ? 'block' : 'none', mb: 2 }}>
-          <video ref={videoRef} autoPlay style={{ width: '100%', borderRadius: '10px', boxShadow: '0px 4px 20px rgba(0,0,0,0.1)' }} />
-        </Box>
+        {isCameraOn && (
+          <Box sx={{ mb: 2 }}>
+            <Paper elevation={3} sx={{ p: 2, position: 'relative', backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255, 255, 255, 0.75)' }}>
+              <video ref={videoRef} autoPlay style={{ width: '100%', borderRadius: '10px', boxShadow: '0px 4px 20px rgba(0,0,0,0.1)' }} />
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleCapture}
+                sx={{ position: 'absolute', top: '10px', right: '10px' }}
+              >
+                Capture
+              </Button>
+            </Paper>
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+          </Box>
+        )}
         {children}
       </Box>
     </Box>

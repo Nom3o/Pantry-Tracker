@@ -41,43 +41,48 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <Container>
-        <Paper elevation={3} sx={{ p: 2, backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255, 255, 255, 0.75)' }}>
-          <Typography variant="h4" gutterBottom>
-            Pantry Management
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-            <TextField
-              label="Item"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              variant="outlined"
-            />
-            {isEditing ? (
-              <Button variant="contained" onClick={handleUpdateItem}>
-                Update Item
-              </Button>
-            ) : (
-              <Button variant="contained" onClick={handleAddItem}>
-                Add Item
-              </Button>
-            )}
-          </Box>
-          <List>
-            {items.map((item, index) => (
-              <ListItem key={index} sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <ListItemText primary={item} />
-                <Box>
-                  <Button variant="outlined" color="primary" onClick={() => handleEditItem(index)} sx={{ mr: 1 }}>
-                    Edit
-                  </Button>
-                  <Button variant="outlined" color="secondary" onClick={() => handleRemoveItem(index)}>
-                    Remove
-                  </Button>
-                </Box>
-              </ListItem>
-            ))}
-          </List>
+        <Typography variant="h4" gutterBottom>
+          Pantry Items
+        </Typography>
+        <Paper elevation={3} sx={{ p: 3, mb: 2 }}>
+          <TextField
+            fullWidth
+            label={isEditing ? 'Edit Item' : 'Add Item'}
+            variant="outlined"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={isEditing ? handleUpdateItem : handleAddItem}
+            sx={{ mt: 2 }}
+          >
+            {isEditing ? 'Update Item' : 'Add Item'}
+          </Button>
         </Paper>
+        <List>
+          {items.map((item, index) => (
+            <ListItem key={index} sx={{ mb: 1 }}>
+              <ListItemText primary={item} />
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => handleRemoveItem(index)}
+                sx={{ mr: 1 }}
+              >
+                Remove
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => handleEditItem(index)}
+              >
+                Edit
+              </Button>
+            </ListItem>
+          ))}
+        </List>
       </Container>
     </DashboardLayout>
   );
