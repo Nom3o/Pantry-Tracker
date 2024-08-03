@@ -62,7 +62,7 @@ function DashboardLayout({ children }) {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            B3la Inventory 
+            Abela Inventory🛍 
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Button color="inherit" onClick={toggleTheme}>
@@ -94,7 +94,7 @@ function DashboardLayout({ children }) {
         {isCameraOn && (
           <Box sx={{ mb: 2 }}>
             <Paper elevation={3} sx={{ p: 2, position: 'relative', backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255, 255, 255, 0.75)' }}>
-              <video ref={videoRef} autoPlay style={{ width: '100%', borderRadius: '10px', boxShadow: '0px 4px 20px rgba(0,0,0,0.1)' }} />
+              <video ref={videoRef} autoPlay style={{ width: '50%', borderRadius: '10px', boxShadow: '0px 4px 20px rgba(0,0,0,0.1)' }} />
               <Button
                 variant="contained"
                 color="secondary"

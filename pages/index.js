@@ -46,7 +46,7 @@ export default function Dashboard() {
     <DashboardLayout>
       <Container>
         <Typography variant="h4" gutterBottom>
-          Pantry Items
+          Pantry Items 
         </Typography>
         <Paper elevation={3} sx={{ p: 3, mb: 2 }}>
           <TextField
@@ -64,7 +64,7 @@ export default function Dashboard() {
           >
             {isEditing ? 'Update Item' : 'Add Item'}
           </Button>
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 3 }} />
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <SearchIcon sx={{ mr: 1 }} />
             <TextField
