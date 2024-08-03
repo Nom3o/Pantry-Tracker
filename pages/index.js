@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
-import { Box, Button, Container, List, ListItem, ListItemText, TextField, Typography, Paper, Divider, IconButton } from '@mui/material';
+import { Box, Button, Container, List, ListItem, ListItemText, TextField, Typography, Paper, Divider, IconButton, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { collection, addDoc, deleteDoc, updateDoc, doc, getDocs } from 'firebase/firestore';
@@ -11,10 +11,13 @@ import { firestore, storage } from '../firebase';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import '@tensorflow/tfjs';
 
+const categories = ["Fruits", "Vegetables", "Dairy", "Meat", "Beverages", "Snacks", "Electronics"];
+
 export default function Dashboard() {
   const [items, setItems] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -36,17 +39,18 @@ export default function Dashboard() {
   }, []);
 
   const handleAddItem = async () => {
-    if (inputValue) {
+    if (inputValue && selectedCategory) {
       let photoURL = null;
       if (photo) {
         const photoRef = ref(storage, `photos/${Date.now()}.png`);
         await uploadBytes(photoRef, photo);
         photoURL = await getDownloadURL(photoRef);
       }
-      await addDoc(itemsCollection, { name: inputValue, photo: photoURL, detectedObject });
+      await addDoc(itemsCollection, { name: inputValue, photo: photoURL, category: selectedCategory, detectedObject });
       setInputValue('');
       setPhoto(null);
       setDetectedObject('');
+      setSelectedCategory('');
       fetchItems();
     }
   };
@@ -60,14 +64,16 @@ export default function Dashboard() {
     setInputValue(item.name);
     setIsEditing(true);
     setCurrentIndex(item.id);
+    setSelectedCategory(item.category);
   };
 
   const handleUpdateItem = async () => {
-    if (inputValue && currentIndex) {
-      await updateDoc(doc(firestore, 'pantryItems', currentIndex), { name: inputValue });
+    if (inputValue && currentIndex && selectedCategory) {
+      await updateDoc(doc(firestore, 'pantryItems', currentIndex), { name: inputValue, category: selectedCategory });
       setInputValue('');
       setIsEditing(false);
       setCurrentIndex(null);
+      setSelectedCategory('');
       fetchItems();
     }
   };
@@ -78,20 +84,42 @@ export default function Dashboard() {
     setItems(itemList);
   };
 
-  const filteredItems = items.filter(item => item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredItems = items.filter(item => 
+    (item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
+    (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
+  const handleCameraOpen = async () => {
+    setIsCameraOpen(true);
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        video.play();
+      }
+    }
+  };
 
-  const handleCapture = () => {
+  const handleCapture = async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
     canvas.toBlob(async (blob) => {
       setPhoto(blob);
       const model = await cocoSsd.load();
       const predictions = await model.detect(canvas);
       if (predictions.length > 0) {
-        setDetectedObject(predictions[0].class);
+        const detectedCategory = predictions[0].class.toLowerCase();
+        setDetectedObject(detectedCategory);
+        context.font = "20px Arial";
+        context.fillStyle = "red";
+        context.fillText(`${detectedCategory}`, 10, 30);
+        if (categories.includes(detectedCategory.charAt(0).toUpperCase() + detectedCategory.slice(1))) {
+          setSelectedCategory(detectedCategory.charAt(0).toUpperCase() + detectedCategory.slice(1));
+        }
       }
       setIsCameraOpen(false);
     });
@@ -100,9 +128,14 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <Container>
-        <Typography variant="h4" gutterBottom>
-          Pantry Items
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4">
+            Pantry Items
+          </Typography>
+          <IconButton onClick={handleCameraOpen}>
+            <CameraAltIcon />
+          </IconButton>
+        </Box>
         <Paper elevation={3} sx={{ p: 3, mb: 2 }}>
           <TextField
             fullWidth
@@ -112,6 +145,18 @@ export default function Dashboard() {
             onChange={(e) => setInputValue(e.target.value)}
             sx={{ mb: 2 }}
           />
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              label="Category"
+            >
+              {categories.map(category => (
+                <MenuItem key={category} value={category}>{category}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <Button
             variant="contained"
             color="primary"
@@ -130,13 +175,10 @@ export default function Dashboard() {
               fullWidth
             />
           </Box>
-          <IconButton onClick={() => setIsCameraOpen(true)} sx={{ mt: 2 }}>
-            <CameraAltIcon />
-          </IconButton>
           {isCameraOpen && (
-            <Box sx={{ mt: 2 }}>
-              <video ref={videoRef} autoPlay style={{ width: '100%' }} />
-              <canvas ref={canvasRef} style={{ display: 'none' }} />
+            <Box sx={{ mt: 2, position: 'relative' }}>
+              <video ref={videoRef} autoPlay style={{ width: '100%', maxWidth: '300px' }} />
+              <canvas ref={canvasRef} style={{ display: 'none', width: '300px', height: '300px' }} />
               <Button variant="contained" color="primary" onClick={handleCapture} sx={{ mt: 2 }}>
                 Take Photo
               </Button>
@@ -147,7 +189,15 @@ export default function Dashboard() {
           {filteredItems.length > 0 ? (
             filteredItems.map((item) => (
               <ListItem key={item.id} sx={{ mb: 1, borderRadius: '10px', boxShadow: '0px 2px 10px rgba(0,0,0,0.1)' }}>
-                <ListItemText primary={item.name} secondary={item.photo && <img src={item.photo} alt="Item" style={{ width: '100px' }} />} />
+                <ListItemText 
+                  primary={item.name} 
+                  secondary={
+                    <>
+                      <Typography variant="body2" color="textSecondary">{item.category}</Typography>
+                      {item.photo && <img src={item.photo} alt="Item" style={{ width: '100px' }} />}
+                    </>
+                  }
+                />
                 <Button
                   variant="contained"
                   color="error"
@@ -166,7 +216,7 @@ export default function Dashboard() {
               </ListItem>
             ))
           ) : (
-            <Typography variant="body1">No items found</Typography>
+            <Typography variant="body2" color="textSecondary">No items found</Typography>
           )}
         </List>
       </Container>
