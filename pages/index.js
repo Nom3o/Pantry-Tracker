@@ -7,9 +7,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { collection, addDoc, deleteDoc, updateDoc, doc, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { firestore, storage } from '../firebase';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
-import '@tensorflow/tfjs';
+//import { firestore, storage } from '../firebase';
+//import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
 export default function Dashboard() {
   const [items, setItems] = useState([]);
