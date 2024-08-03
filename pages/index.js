@@ -7,8 +7,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { collection, addDoc, deleteDoc, updateDoc, doc, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-//import { firestore, storage } from '../firebase';
-//import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import { firestore, storage } from '../firebase';
+import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import '@tensorflow/tfjs';
 
 export default function Dashboard() {
   const [items, setItems] = useState([]);
@@ -78,6 +79,7 @@ export default function Dashboard() {
   };
 
   const filteredItems = items.filter(item => item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
 
   const handleCapture = () => {
     const video = videoRef.current;
